@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>豆腐寶寶性別猜猜樂</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(120deg,#ffe0ed,#dcefff);
+  color:#665566;
+  text-align:center;
+}
+main{max-width:450px;margin:45px auto;padding:20px}
+.card{
+  background:white;
+  border-radius:25px;
+  padding:30px 20px;
+  box-shadow:0 8px 25px #9993;
+}
+h1{color:#e887ad}
+.options{display:flex;gap:12px;margin:25px 0}
+.option{
+  flex:1;padding:25px 8px;
+  border:2px solid transparent;
+  border-radius:18px;
+  background:#f6f6f6;
+  cursor:pointer;
+}
+.boy{background:#e0f1ff}
+.girl{background:#ffe2ee}
+.option.selected{border-color:#ae79b7}
+button{
+  background:#e887ad;color:white;
+  border:0;border-radius:25px;
+  padding:15px 35px;font-size:17px;
+}
+small{color:#888}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+<h2>🩷 BOY OR GIRL? 💙</h2>
+<h1>豆腐寶寶</h1>
+<h2>性別猜猜樂</h2>
+<p>猜猜我是小王子還是小公主？</p>
+<p>猜對就有機會抽中幸運好禮！</p>
+<div class="options">
+<div class="option boy" onclick="choose('boy',this)">
+💙<h3>男寶寶</h3>
+</div>
+<div class="option girl" onclick="choose('girl',this)">
+🩷<h3>女寶寶</h3>
+</div>
+</div>
+<p>投票截止：2026/12/04</p>
+<p>🎁 幸運抽獎：5名</p>
+<button onclick="notice()">送出我的猜測</button>
+<p id="message" role="status"></p>
+<small>活動期間不公開投票結果</small>
+</div>
+</main>
+<script>
+let choice="";
+function choose(value,element){
+ choice=value;
+ document.querySelectorAll(".option")
+ .forEach(x=>x.classList.remove("selected"));
+ element.classList.add("selected");
+}
+function notice(){
+ document.getElementById("message").textContent=
+ choice
+ ? "網站展示版：尚未開放正式投票"
+ : "請先選擇男寶寶或女寶寶";
+}
+</script>
+</body>
+</html>
+  
