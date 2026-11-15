@@ -63,20 +63,129 @@ small{color:#888}
 <small>活動期間不公開投票結果</small>
 </div>
 </main>
-<script>
-let choice="";
-function choose(value,element){
- choice=value;
- document.querySelectorAll(".option")
- .forEach(x=>x.classList.remove("selected"));
- element.classList.add("selected");
-}
-function notice(){
- document.getElementById("message").textContent=
- choice
- ? "網站展示版：尚未開放正式投票"
- : "請先選擇男寶寶或女寶寶";
-}
+  
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+
+import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
+
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
+
+  authDomain: "tofu-baby-gender-2026.firebaseapp.com",
+
+  databaseURL: "https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
+
+  projectId: "tofu-baby-gender-2026",
+
+  storageBucket: "tofu-baby-gender-2026.firebasestorage.app",
+
+  messagingSenderId: "478157000720",
+
+  appId: "1:478157000720:web:354481824c1c4aef53ba95"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+const auth = getAuth(app);
+
+const provider = new GoogleAuthProvider();
+
+let choice = "";
+
+let busy = false;
+
+window.choose = function(value, element) {
+
+  choice = value;
+
+  document.querySelectorAll(".option")
+
+    .forEach(x => x.classList.remove("selected"));
+
+  element.classList.add("selected");
+
+};
+
+window.notice = async function() {
+
+  const msg = document.getElementById("message");
+
+  if (busy) return;
+
+  if (!choice) {
+
+    msg.textContent = "請先選擇男寶寶或女寶寶";
+
+    return;
+
+  }
+
+  if (Date.now() >= Date.parse("2026-12-05T00:00:00+08:00")) {
+
+    msg.textContent = "投票活動已截止";
+
+    return;
+
+  }
+
+  const selectedChoice = choice;
+
+  busy = true;
+
+  try {
+
+    msg.textContent = "請使用 Google 帳號登入";
+
+    const user = auth.currentUser ||
+
+      (await signInWithPopup(auth, provider)).user;
+
+    const result = await runTransaction(
+
+      ref(db, "votes/" + user.uid),
+
+      current => current === null ? {
+
+        name: user.displayName || "",
+
+        gender: selectedChoice,
+
+        time: Date.now()
+
+      } : undefined
+
+    );
+
+    if (result.committed) {
+
+      msg.textContent = "🎉 投票成功！祝你成為幸運得主！";
+
+    } else {
+
+      msg.textContent = "❤️ 你已經投過票囉！";
+
+    }
+
+  } catch (error) {
+
+    msg.textContent = "投票未完成：" + error.code;
+
+  } finally {
+
+    busy = false;
+
+  }
+
+};
+
 </script>
 </body>
 </html>
