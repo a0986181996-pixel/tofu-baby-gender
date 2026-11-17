@@ -1,78 +1,119 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>豆腐寶寶｜管理後台</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>豆腐寶寶｜抽獎管理後台</title>
 <style>
+*{box-sizing:border-box}
 body{
 font-family:system-ui,sans-serif;
 background:#fff5e9;
 color:#655046;
-padding:20px;
+padding:15px;
 }
 main{
-max-width:600px;
+max-width:650px;
 margin:auto;
 background:white;
-padding:24px;
+padding:22px;
 border-radius:24px;
 }
-h1{text-align:center;}
-button{
+h1,h2{text-align:center}
+button,select{
 width:100%;
 padding:14px;
 margin:8px 0;
 border:0;
 border-radius:12px;
-background:#b48c70;
-color:white;
 font-size:16px;
 }
-.stats{
-display:flex;
-gap:8px;
+button{
+background:#b48c70;
+color:white;
 }
+button:disabled{opacity:.45}
+select{background:#f6eee5}
+.stats{display:flex;gap:8px}
 .stat{
 flex:1;
-background:#faf1e8;
-border-radius:12px;
-padding:12px;
+padding:12px 4px;
 text-align:center;
+border-radius:12px;
+background:#eee0d1;
 }
+.boy{background:#e3efff}
+.girl{background:#ffe4ed}
 .record{
-padding:12px;
 border-bottom:1px solid #ddd;
+padding:12px 0;
 overflow-wrap:anywhere;
 }
-#status,#uid{
+.winner{
+background:#fff3d6;
+padding:15px;
+margin:10px 0;
+border-radius:12px;
 overflow-wrap:anywhere;
 }
-[hidden]{display:none!important;}
+[hidden]{display:none!important}
+#status,#uid{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
 <main>
 <h1>👶 豆腐寶寶</h1>
 <h2>管理員專屬後台</h2>
-
 <button id="login">Google 管理員登入</button>
 <button id="logout" hidden>登出</button>
-
 <p id="status">尚未登入</p>
 <p id="uid"></p>
 
 <section id="panel" hidden>
 <div class="stats">
-<div class="stat">💙 男寶寶
-<h2 id="boy">0</h2></div>
-<div class="stat">🩷 女寶寶
-<h2 id="girl">0</h2></div>
-<div class="stat">總票數
-<h2 id="total">0</h2></div>
+<div class="stat boy">
+💙 男寶寶
+<h2 id="boy">0</h2>
 </div>
-<h3>📋 投票名單</h3>
+<div class="stat girl">
+🩷 女寶寶
+<h2 id="girl">0</h2>
+</div>
+<div class="stat">
+總票數
+<h2 id="total">0</h2>
+</div>
+</div>
+
+<hr>
+<h2>🎁 幸運大抽獎</h2>
+<label>寶寶正確性別</label>
+<select id="gender">
+<option value="">請選擇性別</option>
+<option value="boy">💙 男寶寶</option>
+<option value="girl">🩷 女寶寶</option>
+</select>
+
+<p>預定中獎人數：8 位</p>
+<p id="eligible">符合資格：0 人</p>
+<button id="draw" disabled>
+🎉 開始正式抽獎
+</button>
+<p id="drawStatus"></p>
+
+<h2>🏆 幸運得主</h2>
+<div id="winners">尚未抽獎</div>
+<button id="exportWinners" disabled>
+📥 匯出中獎名單
+</button>
+
+<hr>
+<h2>📋 全部投票名單</h2>
 <div id="list"></div>
+<button id="exportAll" disabled>
+📥 匯出全部投票名單
+</button>
 </section>
 </main>
 
@@ -92,11 +133,14 @@ onAuthStateChanged
 import {
 getDatabase,
 ref,
-onValue
+onValue,
+get,
+runTransaction,
+serverTimestamp
 } from
 "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-const firebaseConfig = {
+const firebaseConfig={
 apiKey:"AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
 authDomain:"tofu-baby-gender-2026.firebaseapp.com",
 databaseURL:"https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
@@ -106,11 +150,104 @@ messagingSenderId:"478157000720",
 appId:"1:478157000720:web:354481824c1c4aef53ba95"
 };
 
+const ADMIN_UID="YJlctW9t94VvutDqK73jqmzZDuE3";
+const DEADLINE=1796400000000;
+const WINNER_COUNT=8;
+
 const app=initializeApp(firebaseConfig,"admin");
 const auth=getAuth(app);
 const db=getDatabase(app);
 const $=id=>document.getElementById(id);
-let stop=null;
+
+let votes=[];
+let winners=[];
+let result=null;
+let ready=false;
+let lotteryReady=false;
+let offsetReady=false;
+let offset=0;
+let busy=false;
+let stops=[];
+
+function genderText(g){
+return g==="boy"?"男寶寶":
+g==="girl"?"女寶寶":"未知";
+}
+
+function update(){
+const gender=$("gender").value;
+const count=votes.filter(v=>
+v.gender===gender&&v.consent===true
+).length;
+
+$("eligible").textContent=
+"符合資格："+count+" 人";
+
+const closed=Date.now()+offset>=DEADLINE;
+
+$("draw").disabled=
+!ready||!lotteryReady||!offsetReady||
+busy||!!result||!gender||!count||!closed;
+
+$("gender").disabled=!!result||busy;
+$("exportAll").disabled=!ready;
+$("exportWinners").disabled=
+!ready||!lotteryReady||!result||!winners.length;
+
+$("drawStatus").textContent=result?
+"正式抽獎已完成，不可重複抽獎":
+!lotteryReady?"等待抽獎資料權限":
+!offsetReady?"等待伺服器時間":
+!closed?"尚未到投票截止時間":
+"投票已截止，可以抽獎";
+}
+
+function render(){
+$("boy").textContent=
+votes.filter(v=>v.gender==="boy").length;
+
+$("girl").textContent=
+votes.filter(v=>v.gender==="girl").length;
+
+$("total").textContent=votes.length;
+
+$("list").replaceChildren();
+
+votes.forEach((v,i)=>{
+const div=document.createElement("div");
+div.className="record";
+div.textContent=
+(i+1)+"．"+v.name+
+"｜"+genderText(v.gender)+
+"｜收件地址："+v.address;
+$("list").appendChild(div);
+});
+
+$("winners").replaceChildren();
+winners=[];
+
+if(result){
+$("gender").value=result.gender;
+
+winners=Object.keys(result.winners||{})
+.map(uid=>votes.find(v=>v.uid===uid))
+.filter(Boolean);
+
+winners.forEach((v,i)=>{
+const div=document.createElement("div");
+div.className="winner";
+div.textContent=
+"🏆 幸運得主 "+(i+1)+
+"｜"+v.name+
+"｜收件地址："+v.address;
+$("winners").appendChild(div);
+});
+}else{
+$("winners").textContent="尚未抽獎";
+}
+
+update();
+}
 
 $("login").onclick=async()=>{
 try{
@@ -127,13 +264,20 @@ $("status").textContent="登入失敗："+e.code;
 $("logout").onclick=()=>signOut(auth);
 
 onAuthStateChanged(auth,user=>{
-if(stop){stop();stop=null;}
+stops.forEach(fn=>fn());
+stops=[];
+votes=[];
+winners=[];
+result=null;
+ready=false;
+lotteryReady=false;
+offsetReady=false;
+
 $("panel").hidden=true;
 $("list").replaceChildren();
+$("winners").replaceChildren();
+$("gender").value="";
 $("uid").textContent="";
-$("boy").textContent="0";
-$("girl").textContent="0";
-$("total").textContent="0";
 
 const loggedIn=!!user&&!user.isAnonymous;
 $("login").hidden=loggedIn;
@@ -144,38 +288,177 @@ $("status").textContent="尚未登入";
 return;
 }
 
-$("status").textContent="Google 登入成功";
-$("uid").textContent="管理員 UID："+user.uid;
+$("uid").textContent="UID："+user.uid;
 
-stop=onValue(ref(db,"votes"),snapshot=>{
-const votes=Object.values(snapshot.val()||{});
-$("boy").textContent=
-votes.filter(v=>v.gender==="boy").length;
-$("girl").textContent=
-votes.filter(v=>v.gender==="girl").length;
-$("total").textContent=votes.length;
-$("list").replaceChildren();
+if(user.uid!==ADMIN_UID){
+$("status").textContent="非授權管理員";
+return;
+}
 
-votes.forEach((v,i)=>{
-const div=document.createElement("div");
-div.className="record";
-div.textContent=
-(i+1)+"．"+v.name+"｜"+
-(v.gender==="boy"?"💙 男寶寶":"🩷 女寶寶")+
-"｜收件地址："+v.address;
-$("list").appendChild(div);
-});
-
-$("status").textContent="資料讀取成功";
 $("panel").hidden=false;
+$("status").textContent="管理員登入成功";
 
-},error=>{
-$("panel").hidden=true;
-$("list").replaceChildren();
-$("status").textContent=
-"登入成功，尚未取得資料庫讀取權限";
+stops.push(onValue(
+ref(db,".info/serverTimeOffset"),
+s=>{
+offset=s.val()||0;
+offsetReady=true;
+update();
+}
+));
+
+stops.push(onValue(
+ref(db,"votes"),
+s=>{
+votes=Object.entries(s.val()||{})
+.map(([uid,v])=>({...v,uid}));
+ready=true;
+$("status").textContent="資料讀取成功";
+render();
+},
+e=>{
+ready=false;
+votes=[];
+$("status").textContent="投票資料讀取失敗";
+render();
+}
+));
+
+stops.push(onValue(
+ref(db,"lottery"),
+s=>{
+result=s.val();
+lotteryReady=true;
+render();
+},
+e=>{
+lotteryReady=false;
+result=null;
+$("status").textContent="抽獎權限讀取失敗";
+render();
+}
+));
 });
+
+$("gender").onchange=update;
+setInterval(update,1000);
+
+function randomIndex(max){
+const a=new Uint32Array(1);
+const range=4294967296;
+const limit=range-(range%max);
+do{
+crypto.getRandomValues(a);
+}while(a[0]>=limit);
+return a[0]%max;
+}
+
+$("draw").onclick=async()=>{
+if($("draw").disabled)return;
+
+const gender=$("gender").value;
+
+if(!confirm(
+"確認正確性別為"+genderText(gender)+
+"，正式抽獎只能執行一次，確定開始？"
+))return;
+
+busy=true;
+update();
+
+try{
+const snapshot=await get(ref(db,"votes"));
+
+const pool=Object.entries(snapshot.val()||{})
+.map(([uid,v])=>({...v,uid}))
+.filter(v=>
+v.gender===gender&&v.consent===true
+);
+
+if(!pool.length){
+alert("沒有符合資格的投票者");
+return;
+}
+
+const selected={};
+const count=Math.min(WINNER_COUNT,pool.length);
+
+for(let i=0;i<count;i++){
+const index=randomIndex(pool.length);
+const winner=pool.splice(index,1)[0];
+selected[winner.uid]=true;
+}
+
+const saved=await runTransaction(
+ref(db,"lottery"),
+current=>{
+if(current!==null)return;
+return {
+gender:gender,
+createdAt:serverTimestamp(),
+winners:selected
+};
+}
+);
+
+if(saved.committed){
+alert("🎉 正式抽獎完成！");
+}else{
+alert("已存在正式抽獎紀錄");
+}
+}catch(e){
+alert("抽獎失敗："+e.message);
+}finally{
+busy=false;
+update();
+}
+};
+
+function csvCell(value){
+let text=String(value??"");
+if(/^[\s]*[=+@-]|^[\t\r\n]/.test(text)){
+text="'"+text;
+}
+return '"'+text.replace(/"/g,'""')+'"';
+}
+
+function downloadCSV(data,name){
+const rows=[
+["編號","姓名","猜測性別","收件地址"],
+...data.map((v,i)=>[
+i+1,v.name,genderText(v.gender),v.address
+])
+];
+
+const csv="\uFEFF"+rows.map(
+row=>row.map(csvCell).join(",")
+).join("\r\n");
+
+const blob=new Blob([csv],{
+type:"text/csv;charset=utf-8;"
 });
+
+const url=URL.createObjectURL(blob);
+const a=document.createElement("a");
+a.href=url;
+a.download=name+".csv";
+document.body.appendChild(a);
+a.click();
+a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+$("exportAll").onclick=()=>{
+if(ready){
+downloadCSV(votes,"豆腐寶寶全部投票名單");
+}
+};
+
+$("exportWinners").onclick=()=>{
+if(ready&&result&&winners.length){
+downloadCSV(winners,"豆腐寶寶幸運中獎名單");
+}
+};
 </script>
 </body>
 </html>
