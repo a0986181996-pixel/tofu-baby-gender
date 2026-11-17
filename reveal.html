@@ -1,0 +1,717 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>豆腐寶寶｜性別揭曉派對</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+min-height:100vh;
+background:linear-gradient(135deg,#fff0df,#ffe5ef,#dcefff);
+font-family:system-ui,sans-serif;
+color:#806557;
+text-align:center;
+transition:background 1s;
+}
+
+main{
+max-width:480px;
+margin:20px auto;
+padding:15px;
+}
+
+.card{
+background:#fffdf8;
+border-radius:35px;
+padding:25px 18px;
+box-shadow:0 12px 40px #987b6725;
+}
+
+h1{
+font-size:29px;
+color:#bd8298;
+}
+
+h2{
+letter-spacing:2px;
+}
+
+.subtitle{
+letter-spacing:5px;
+font-size:15px;
+color:#b69c86;
+}
+
+.penguins{
+display:flex;
+justify-content:center;
+align-items:center;
+margin:15px 0;
+}
+
+.penguin{
+width:46%;
+max-width:180px;
+animation:waddle 1s infinite alternate;
+}
+
+.penguin:nth-child(2){
+animation-direction:alternate-reverse;
+}
+
+@keyframes waddle{
+from{transform:rotate(-9deg)}
+to{transform:rotate(9deg)}
+}
+
+#gift{
+position:relative;
+width:135px;
+height:135px;
+margin:25px auto;
+}
+
+.giftbody{
+position:absolute;
+bottom:0;
+left:10px;
+width:115px;
+height:90px;
+border-radius:10px;
+background:#eeb3c9;
+overflow:hidden;
+}
+
+.giftbody:after{
+content:"";
+position:absolute;
+left:48px;
+width:20px;
+height:100%;
+background:#fff0c9;
+}
+
+.giftlid{
+position:absolute;
+top:27px;
+left:0;
+width:135px;
+height:25px;
+background:#e49ab5;
+border-radius:6px;
+transition:transform 1s;
+z-index:2;
+}
+
+.ribbon{
+position:absolute;
+top:-14px;
+left:18px;
+font-size:65px;
+}
+
+.shake{
+animation:shake .2s infinite alternate;
+filter:drop-shadow(0 0 18px #ffdf91);
+}
+
+@keyframes shake{
+from{transform:rotate(-6deg)}
+to{transform:rotate(6deg)}
+}
+
+.open .giftlid{
+transform:translateY(-95px) rotate(-35deg);
+}
+
+#count{
+font-size:75px;
+font-weight:bold;
+color:#db92ab;
+min-height:20px;
+}
+
+#result{
+font-size:38px;
+font-weight:bold;
+margin:20px 0;
+}
+
+#babyResult{
+width:210px;
+margin:auto;
+animation:pop 1s ease;
+}
+
+@keyframes pop{
+0%{transform:scale(.1);opacity:0}
+70%{transform:scale(1.15)}
+100%{transform:scale(1);opacity:1}
+}
+
+button,a{
+display:block;
+width:100%;
+padding:16px;
+margin-top:15px;
+border:0;
+border-radius:20px;
+font-size:17px;
+text-decoration:none;
+font-weight:bold;
+color:white;
+background:#d998b2;
+}
+
+button:disabled{
+opacity:.5;
+}
+
+.home{
+background:#baa18d;
+}
+
+.winners{
+background:#d0ae80;
+}
+
+.boyTheme{
+background:linear-gradient(135deg,#cce9ff,#eef8ff,#fff5e8);
+}
+
+.girlTheme{
+background:linear-gradient(135deg,#ffd7e8,#fff0f6,#fff5e8);
+}
+
+.boyText{color:#77a7d4}
+.girlText{color:#db85aa}
+
+.party{
+position:fixed;
+pointer-events:none;
+top:-80px;
+z-index:100;
+animation:fall 4s linear forwards;
+}
+
+@keyframes fall{
+to{
+transform:translateY(115vh)
+rotate(360deg);
+}
+}
+
+.balloon{
+position:fixed;
+bottom:-100px;
+pointer-events:none;
+font-size:55px;
+animation:floatUp 5s linear forwards;
+}
+
+@keyframes floatUp{
+to{transform:translateY(-125vh)}
+}
+
+[hidden]{display:none!important}
+
+small{
+line-height:1.8;
+color:#ac9585;
+}
+
+@media(prefers-reduced-motion:reduce){
+.penguin,.shake,#babyResult{
+animation:none;
+}
+.party,.balloon{
+display:none;
+}
+}
+</style>
+</head>
+
+<body>
+<main>
+<div class="card">
+
+<p class="subtitle">GENDER REVEAL</p>
+
+<h1>豆腐寶寶</h1>
+<h2>幸福性別揭曉派對</h2>
+
+<div class="penguins" id="penguins">
+<div class="penguin" id="boyPenguin"></div>
+<div class="penguin" id="girlPenguin"></div>
+</div>
+
+<p id="question">
+小王子還是小公主呢？
+</p>
+
+<div id="gift">
+<div class="giftbody"></div>
+<div class="giftlid">
+<span class="ribbon">🎀</span>
+</div>
+</div>
+
+<div id="count"></div>
+
+<div id="babyResult" hidden></div>
+
+<div id="result" hidden></div>
+
+<h2 id="resultText" hidden></h2>
+
+<p id="status" role="status">
+正在確認性別公布狀態...
+</p>
+
+<button id="start" disabled>
+🎁 等待正式性別揭曉
+</button>
+
+<button id="replay" hidden>
+🔄 再看一次揭曉動畫
+</button>
+
+<a href="winners.html" class="winners">
+🏆 查看幸運中獎名單
+</a>
+
+<a href="index.html" class="home">
+返回性別猜猜樂首頁
+</a>
+
+<p>
+<small>
+謝謝大家陪伴豆腐寶寶<br>
+一起迎接幸福的新生命 ♡
+</small>
+</p>
+
+</div>
+</main>
+
+<script type="module">
+
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+import {getDatabase,ref,onValue}
+from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
+authDomain:"tofu-baby-gender-2026.firebaseapp.com",
+databaseURL:"https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
+projectId:"tofu-baby-gender-2026",
+storageBucket:"tofu-baby-gender-2026.firebasestorage.app",
+messagingSenderId:"478157000720",
+appId:"1:478157000720:web:354481824c1c4aef53ba95"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+
+const $=id=>document.getElementById(id);
+
+let gender=null;
+let playing=false;
+let timer=null;
+let audio=null;
+
+function penguin(type){
+
+const color=type==="boy"?
+"#91bee3":"#efb0ca";
+
+const bow=type==="boy"?
+`<g transform="translate(100 126)">
+<path d="M0 0 L-25 -13 Q-34 0 -25 13 Z"
+fill="${color}"/>
+<path d="M0 0 L25 -13 Q34 0 25 13 Z"
+fill="${color}"/>
+<circle r="7" fill="${color}"/>
+</g>`:
+`<g transform="translate(142 44)">
+<path d="M0 0 L-24 -16 Q-32 0 -24 16 Z"
+fill="${color}"/>
+<path d="M0 0 L24 -16 Q32 0 24 16 Z"
+fill="${color}"/>
+<circle r="8" fill="${color}"/>
+</g>`;
+
+return `
+<svg viewBox="0 0 200 240"
+xmlns="http://www.w3.org/2000/svg">
+
+<ellipse cx="100" cy="226"
+rx="66" ry="7" fill="#ddd0c2"/>
+
+<ellipse cx="68" cy="212"
+rx="27" ry="13" fill="#efbd7d"/>
+
+<ellipse cx="132" cy="212"
+rx="27" ry="13" fill="#efbd7d"/>
+
+<ellipse cx="37" cy="145"
+rx="20" ry="43"
+transform="rotate(25 37 145)"
+fill="#9baabd"/>
+
+<ellipse cx="163" cy="145"
+rx="20" ry="43"
+transform="rotate(-25 163 145)"
+fill="#9baabd"/>
+
+<ellipse cx="100" cy="123"
+rx="76" ry="96" fill="#9baabd"/>
+
+<ellipse cx="100" cy="148"
+rx="57" ry="62" fill="#fffdf7"/>
+
+<ellipse cx="76" cy="90"
+rx="38" ry="39" fill="#fffdf7"/>
+
+<ellipse cx="124" cy="90"
+rx="38" ry="39" fill="#fffdf7"/>
+
+<ellipse cx="74" cy="91"
+rx="8" ry="11" fill="#514950"/>
+
+<ellipse cx="126" cy="91"
+rx="8" ry="11" fill="#514950"/>
+
+<circle cx="77" cy="87"
+r="3" fill="white"/>
+
+<circle cx="129" cy="87"
+r="3" fill="white"/>
+
+<ellipse cx="55" cy="109"
+rx="14" ry="7" fill="#f5b8c7"/>
+
+<ellipse cx="145" cy="109"
+rx="14" ry="7" fill="#f5b8c7"/>
+
+<path d="M86 104 Q100 96 114 104
+Q100 123 86 104"
+fill="#efbd7d"/>
+
+<path d="M78 36 L72 10
+L91 20 L100 3
+L109 20 L128 10
+L122 36 Z"
+fill="#eed18e"
+stroke="#dfb974"
+stroke-width="2"/>
+
+<circle cx="100" cy="26"
+r="5" fill="${color}"/>
+
+${bow}
+
+<path d="M100 180
+C75 164 81 149 100 163
+C119 149 125 164 100 180"
+fill="${color}"/>
+
+</svg>`;
+}
+
+$("boyPenguin").innerHTML=penguin("boy");
+$("girlPenguin").innerHTML=penguin("girl");
+
+function prepareAudio(){
+
+try{
+
+const AudioClass=
+window.AudioContext||
+window.webkitAudioContext;
+
+if(!AudioClass)return;
+
+audio=audio||new AudioClass();
+audio.resume().catch(()=>{});
+
+}catch(e){}
+}
+
+function music(){
+
+if(!audio)return;
+
+try{
+
+[523,659,784,1047,784,1047]
+.forEach((hz,i)=>{
+
+const osc=audio.createOscillator();
+const gain=audio.createGain();
+
+const t=audio.currentTime+i*.18;
+
+osc.frequency.value=hz;
+
+gain.gain.setValueAtTime(.07,t);
+
+gain.gain.exponentialRampToValueAtTime(
+.001,t+.3
+);
+
+osc.connect(gain);
+gain.connect(audio.destination);
+
+osc.start(t);
+osc.stop(t+.3);
+
+});
+
+}catch(e){}
+}
+
+function clearParty(){
+
+document.querySelectorAll(
+".party,.balloon"
+).forEach(el=>el.remove());
+
+}
+
+function celebration(type){
+
+clearParty();
+
+const icons=type==="boy"?
+["💙","⭐","✨","🎉"]:
+["🩷","🌸","✨","🎉"];
+
+for(let i=0;i<60;i++){
+
+const el=document.createElement("span");
+
+el.className="party";
+el.textContent=icons[i%icons.length];
+
+el.style.left=Math.random()*100+"vw";
+el.style.fontSize=
+(15+Math.random()*22)+"px";
+
+el.style.animationDelay=
+Math.random()*1.5+"s";
+
+document.body.appendChild(el);
+
+setTimeout(()=>el.remove(),6000);
+
+}
+
+for(let i=0;i<12;i++){
+
+const el=document.createElement("span");
+
+el.className="balloon";
+
+el.textContent=i%2===0?
+"🎈":type==="boy"?"💙":"🩷";
+
+el.style.left=Math.random()*90+"vw";
+
+el.style.animationDelay=
+Math.random()*2+"s";
+
+document.body.appendChild(el);
+
+setTimeout(()=>el.remove(),7500);
+
+}
+
+music();
+
+}
+
+function reset(){
+
+clearTimeout(timer);
+clearParty();
+
+playing=false;
+
+document.body.className="";
+
+$("penguins").hidden=false;
+$("question").hidden=false;
+$("gift").hidden=false;
+$("gift").className="";
+
+$("count").textContent="";
+
+$("babyResult").hidden=true;
+$("babyResult").replaceChildren();
+
+$("result").hidden=true;
+$("result").textContent="";
+$("resultText").hidden=true;
+$("resultText").textContent="";
+
+$("replay").hidden=true;
+$("start").hidden=false;
+$("start").disabled=!gender;
+
+$("start").textContent=gender?
+"🎉 開始性別揭曉":
+"🎁 等待正式性別揭曉";
+
+}
+
+function showResult(type){
+
+if(!gender||gender!==type){
+reset();
+return;
+}
+
+playing=false;
+
+$("gift").classList.remove("shake");
+$("gift").classList.add("open");
+
+$("count").textContent="🎉";
+
+document.body.className=
+type==="boy"?
+"boyTheme":"girlTheme";
+
+$("penguins").hidden=true;
+$("question").hidden=true;
+
+$("babyResult").innerHTML=penguin(type);
+$("babyResult").hidden=false;
+
+$("result").hidden=false;
+
+$("result").className=
+type==="boy"?"boyText":"girlText";
+
+$("result").textContent=
+type==="boy"?
+"IT'S A BOY!":
+"IT'S A GIRL!";
+
+$("resultText").hidden=false;
+
+$("resultText").textContent=
+type==="boy"?
+"💙 恭喜！是男寶寶！":
+"🩷 恭喜！是女寶寶！";
+
+$("status").textContent=
+"謝謝大家陪伴豆腐寶寶一起迎接幸福！";
+
+$("start").hidden=true;
+$("replay").hidden=false;
+
+celebration(type);
+
+}
+
+function startReveal(){
+
+if(!gender||playing)return;
+
+prepareAudio();
+reset();
+
+const type=gender;
+
+playing=true;
+
+$("start").disabled=true;
+
+$("status").textContent=
+"神秘禮物盒即將打開...";
+
+$("gift").classList.add("shake");
+
+let count=3;
+
+$("count").textContent=count;
+
+function tick(){
+
+if(!playing||gender!==type){
+reset();
+return;
+}
+
+count--;
+
+if(count>0){
+
+$("count").textContent=count;
+timer=setTimeout(tick,1000);
+
+}else{
+
+showResult(type);
+
+}
+
+}
+
+timer=setTimeout(tick,1000);
+
+}
+
+$("start").onclick=startReveal;
+$("replay").onclick=startReveal;
+
+onValue(ref(db,"genderReveal"),snapshot=>{
+
+const data=snapshot.val();
+
+if(data&&data.published===true&&
+(data.gender==="boy"||
+data.gender==="girl")){
+
+if(gender!==data.gender){
+
+gender=data.gender;
+reset();
+
+$("status").textContent=
+"寶寶性別已正式公布，快來打開神秘禮物盒！";
+
+}
+
+}else{
+
+gender=null;
+reset();
+
+$("status").textContent=
+"寶寶性別尚未公布，敬請期待！";
+
+}
+
+},()=>{
+
+gender=null;
+reset();
+
+$("status").textContent=
+"性別揭曉功能籌備中，敬請期待！";
+
+});
+
+</script>
+</body>
+</html>
