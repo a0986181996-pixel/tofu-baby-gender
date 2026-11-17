@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>豆腐寶寶｜管理後台</title>
+
 <style>
 *{box-sizing:border-box}
 body{
@@ -61,18 +62,98 @@ border-radius:12px;
 overflow-wrap:anywhere;
 }
 .publish{background:#927457}
+.demo{background:#85a9c7}
 [hidden]{display:none!important}
 #status,#uid{overflow-wrap:anywhere}
+
+#penguinShow{
+position:fixed;
+inset:0;
+z-index:99999;
+background:linear-gradient(
+135deg,#dceeff,#ffe2ed,#fff4df);
+overflow:auto;
+padding:20px;
+text-align:center;
+}
+#penguinCard{
+max-width:480px;
+margin:15px auto;
+background:#fffdf8;
+padding:22px;
+border-radius:30px;
+box-shadow:0 10px 35px #9993;
+}
+#penguinBaby{
+width:160px;
+margin:auto;
+animation:dance .7s infinite alternate;
+}
+@keyframes dance{
+from{transform:rotate(-10deg)}
+to{transform:rotate(10deg)}
+}
+#penguinCount{
+font-size:65px;
+font-weight:bold;
+color:#e887ad;
+}
+#penguinGift{
+font-size:65px;
+}
+#penguinName{
+font-size:23px;
+font-weight:bold;
+overflow-wrap:anywhere;
+}
+#penguinNames{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin:20px 0;
+}
+.penguinWinner{
+padding:15px 5px;
+background:#fff0d9;
+border-radius:15px;
+overflow-wrap:anywhere;
+animation:pop .5s ease;
+}
+@keyframes pop{
+from{transform:scale(.2);opacity:0}
+to{transform:scale(1);opacity:1}
+}
+.confetti{
+position:fixed;
+top:-30px;
+z-index:100000;
+pointer-events:none;
+animation:fall 3s linear forwards;
+}
+@keyframes fall{
+to{transform:translateY(110vh) rotate(720deg)}
+}
+@media(prefers-reduced-motion:reduce){
+#penguinBaby,.penguinWinner{animation:none}
+.confetti{display:none}
+}
 </style>
 </head>
 
 <body>
+
 <main>
-<h1>👶 豆腐寶寶</h1>
+
+<h1>🐧 豆腐寶寶</h1>
 <h2>管理員專屬後台</h2>
 
-<button id="login">Google 管理員登入</button>
-<button id="logout" hidden>登出</button>
+<button id="login">
+Google 管理員登入
+</button>
+
+<button id="logout" hidden>
+登出
+</button>
 
 <p id="status">尚未登入</p>
 <p id="uid"></p>
@@ -80,6 +161,7 @@ overflow-wrap:anywhere;
 <section id="panel" hidden>
 
 <div class="stats">
+
 <div class="stat boy">
 💙 男寶寶
 <h2 id="boy">0</h2>
@@ -94,6 +176,7 @@ overflow-wrap:anywhere;
 總票數
 <h2 id="total">0</h2>
 </div>
+
 </div>
 
 <hr>
@@ -117,8 +200,17 @@ overflow-wrap:anywhere;
 
 <p id="drawStatus"></p>
 
+<button id="demo" class="demo">
+🎮 模擬企鵝寶寶抽獎
+</button>
+
 <h2>🏆 幸運得主</h2>
+
 <div id="winners">尚未抽獎</div>
+
+<button id="animate" disabled>
+🐧 正式中獎揭曉動畫
+</button>
 
 <button id="exportWinners" disabled>
 📥 匯出中獎名單
@@ -129,6 +221,7 @@ overflow-wrap:anywhere;
 <h2>📢 公布中獎名單</h2>
 
 <p id="publishStatus">尚未公布</p>
+
 <p>公布後將遮蔽姓名，不公開收件地址。</p>
 
 <button id="publish" class="publish" disabled>
@@ -153,7 +246,113 @@ target="_blank" rel="noopener noreferrer">
 </section>
 </main>
 
+<div id="penguinShow" hidden>
+
+<div id="penguinCard">
+
+<h1>🐧 豆腐寶寶</h1>
+<h2>幸福幸運大抽獎</h2>
+
+<p id="penguinMode"></p>
+
+<div id="penguinBaby">
+
+<svg viewBox="0 0 200 220"
+xmlns="http://www.w3.org/2000/svg">
+
+<ellipse cx="100" cy="207"
+rx="65" ry="7" fill="#ded6ca"/>
+
+<ellipse cx="67" cy="194"
+rx="25" ry="13" fill="#efb86b"/>
+
+<ellipse cx="133" cy="194"
+rx="25" ry="13" fill="#efb86b"/>
+
+<ellipse cx="43" cy="130"
+rx="19" ry="43"
+transform="rotate(25 43 130)"
+fill="#8196ad"/>
+
+<ellipse cx="157" cy="130"
+rx="19" ry="43"
+transform="rotate(-25 157 130)"
+fill="#8196ad"/>
+
+<ellipse cx="100" cy="104"
+rx="70" ry="91" fill="#8196ad"/>
+
+<ellipse cx="100" cy="130"
+rx="53" ry="61" fill="#fffdf7"/>
+
+<ellipse cx="77" cy="73"
+rx="34" ry="32" fill="#fffdf7"/>
+
+<ellipse cx="123" cy="73"
+rx="34" ry="32" fill="#fffdf7"/>
+
+<ellipse cx="76" cy="76"
+rx="7" ry="10" fill="#514c50"/>
+
+<ellipse cx="124" cy="76"
+rx="7" ry="10" fill="#514c50"/>
+
+<circle cx="78" cy="73"
+r="2.5" fill="white"/>
+
+<circle cx="126" cy="73"
+r="2.5" fill="white"/>
+
+<ellipse cx="61" cy="95"
+rx="12" ry="6" fill="#f5b7c4"/>
+
+<ellipse cx="139" cy="95"
+rx="12" ry="6" fill="#f5b7c4"/>
+
+<path d="M86 89 Q100 81 114 89
+Q100 111 86 89"
+fill="#efb86b"/>
+
+<path d="M100 34 Q68 7 67 31
+Q68 50 100 39
+Q132 50 133 31
+Q132 7 100 34"
+fill="#f2a9bf"/>
+
+<circle cx="100" cy="35"
+r="8" fill="#e58da9"/>
+
+<rect x="73" y="132" width="54"
+height="42" rx="5" fill="#edb4c8"/>
+
+<rect x="96" y="132" width="8"
+height="42" fill="#fff2cf"/>
+
+<rect x="70" y="130" width="60"
+height="10" rx="3" fill="#e39bb6"/>
+
+</svg>
+
+</div>
+
+<div id="penguinCount"></div>
+<div id="penguinGift">🎁</div>
+<p id="penguinName"></p>
+<div id="penguinNames"></div>
+
+<button id="penguinNext">
+🎉 開始揭曉
+</button>
+
+<button id="penguinClose">
+返回管理後台
+</button>
+
+</div>
+</div>
+
 <script type="module">
+
 import {initializeApp} from
 "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 
@@ -216,7 +415,7 @@ g==="girl"?"女寶寶":"未知";
 
 function isAdmin(){
 return auth.currentUser?.uid===ADMIN_UID
-&& !auth.currentUser.isAnonymous;
+&&!auth.currentUser.isAnonymous;
 }
 
 function maskName(name){
@@ -225,9 +424,7 @@ String(name||"").trim()
 );
 
 if(chars.length<=1)return "○";
-if(chars.length===2){
-return chars[0]+"○";
-}
+if(chars.length===2)return chars[0]+"○";
 
 return chars[0]+
 "○".repeat(Math.min(chars.length-2,46))+
@@ -235,7 +432,9 @@ chars[chars.length-1];
 }
 
 function update(){
+
 const gender=$("gender").value;
+
 const count=votes.filter(v=>
 v.gender===gender&&v.consent===true
 ).length;
@@ -251,10 +450,19 @@ $("draw").disabled=
 !gender||!count||!closed;
 
 $("gender").disabled=!!result||busy;
-$("exportAll").disabled=!ready;
+$("exportAll").disabled=!isAdmin()||!ready;
 
 $("exportWinners").disabled=
-!ready||!result||!winners.length;
+!isAdmin()||!ready||!result||!winners.length;
+
+$("animate").disabled=
+!isAdmin()||!ready||!lotteryReady||
+!result||busy||!winners.length||
+winners.length!==Object.keys(
+result?.winners||{}
+).length;
+
+$("demo").disabled=!isAdmin();
 
 $("publish").disabled=
 !isAdmin()||!ready||!lotteryReady||
@@ -280,6 +488,7 @@ publicResult?.published===true?
 }
 
 function render(){
+
 $("boy").textContent=
 votes.filter(v=>v.gender==="boy").length;
 
@@ -293,6 +502,7 @@ $("list").replaceChildren();
 votes.forEach((v,i)=>{
 const div=document.createElement("div");
 div.className="record";
+
 div.textContent=
 (i+1)+"．"+v.name+
 "｜"+genderText(v.gender)+
@@ -305,6 +515,7 @@ $("winners").replaceChildren();
 winners=[];
 
 if(result){
+
 $("gender").value=result.gender;
 
 winners=Object.keys(result.winners||{})
@@ -313,7 +524,9 @@ winners=Object.keys(result.winners||{})
 
 winners.forEach((v,i)=>{
 const div=document.createElement("div");
+
 div.className="winner";
+
 div.textContent=
 "🏆 幸運得主 "+(i+1)+
 "｜"+v.name+
@@ -321,6 +534,7 @@ div.textContent=
 
 $("winners").appendChild(div);
 });
+
 }else{
 $("winners").textContent="尚未抽獎";
 }
@@ -344,9 +558,15 @@ $("status").textContent=
 }
 };
 
-$("logout").onclick=()=>signOut(auth);
+$("logout").onclick=()=>{
+closeAnimation();
+return signOut(auth);
+};
 
 onAuthStateChanged(auth,user=>{
+
+closeAnimation();
+
 stops.forEach(fn=>fn());
 stops=[];
 
@@ -385,6 +605,8 @@ return;
 
 $("panel").hidden=false;
 $("status").textContent="管理員登入成功";
+
+update();
 
 stops.push(onValue(
 ref(db,".info/serverTimeOffset"),
@@ -441,6 +663,7 @@ $("status").textContent="公布資料讀取失敗";
 update();
 }
 ));
+
 });
 
 $("gender").onchange=update;
@@ -460,6 +683,7 @@ return a[0]%max;
 }
 
 $("draw").onclick=async()=>{
+
 if($("draw").disabled)return;
 
 const gender=$("gender").value;
@@ -473,6 +697,7 @@ busy=true;
 update();
 
 try{
+
 const snapshot=await get(ref(db,"votes"));
 
 const pool=Object.entries(snapshot.val()||{})
@@ -487,17 +712,22 @@ return;
 }
 
 const selected={};
+const selectedNames=[];
 const count=Math.min(WINNER_COUNT,pool.length);
 
 for(let i=0;i<count;i++){
+
 const index=randomIndex(pool.length);
 const winner=pool.splice(index,1)[0];
+
 selected[winner.uid]=true;
+selectedNames.push(maskName(winner.name));
 }
 
 const saved=await runTransaction(
 ref(db,"lottery"),
 current=>{
+
 if(current!==null)return;
 
 return {
@@ -505,11 +735,15 @@ gender:gender,
 createdAt:serverTimestamp(),
 winners:selected
 };
-}
+
+},
+{applyLocally:false}
 );
 
 if(saved.committed){
-alert("🎉 正式抽獎完成！");
+if(isAdmin()){
+openAnimation(selectedNames,false);
+}
 }else{
 alert("已存在正式抽獎紀錄");
 }
@@ -523,6 +757,7 @@ update();
 };
 
 $("publish").onclick=async()=>{
+
 if($("publish").disabled)return;
 
 const names={};
@@ -544,6 +779,7 @@ busy=true;
 update();
 
 try{
+
 const payload={
 published:true,
 gender:result.gender,
@@ -555,7 +791,8 @@ ref(db,"publicWinners"),
 current=>{
 if(current!==null)return;
 return payload;
-}
+},
+{applyLocally:false}
 );
 
 if(saved.committed){
@@ -583,8 +820,10 @@ return '"'+text.replace(/"/g,'""')+'"';
 }
 
 function downloadCSV(data,name){
+
 const rows=[
 ["編號","姓名","猜測性別","收件地址"],
+
 ...data.map((v,i)=>[
 i+1,v.name,genderText(v.gender),v.address
 ])
@@ -623,7 +862,265 @@ downloadCSV(winners,"豆腐寶寶幸運中獎名單");
 }
 };
 
+// 企鵝寶寶動態抽獎
+
+let animationNames=[];
+let animationIndex=0;
+let animationTimer=null;
+let animationActive=false;
+let animationRunning=false;
+let audio=null;
+
+function prepareAudio(){
+try{
+const AudioClass=
+window.AudioContext||
+window.webkitAudioContext;
+
+if(!AudioClass)return;
+
+audio=audio||new AudioClass();
+
+audio.resume().catch(()=>{});
+}catch(e){}
+}
+
+function playSound(){
+
+if(!audio)return;
+
+try{
+
+[523,659,784,1047].forEach((hz,i)=>{
+
+const osc=audio.createOscillator();
+const gain=audio.createGain();
+
+const t=audio.currentTime+i*.12;
+
+osc.frequency.value=hz;
+
+gain.gain.setValueAtTime(.08,t);
+
+gain.gain.exponentialRampToValueAtTime(
+.001,t+.2
+);
+
+osc.connect(gain);
+gain.connect(audio.destination);
+
+osc.start(t);
+osc.stop(t+.2);
+
+});
+
+}catch(e){}
+}
+
+function confetti(){
+
+const icons=["🎉","💙","🩷","⭐","✨"];
+
+for(let i=0;i<40;i++){
+
+const el=document.createElement("span");
+
+el.className="confetti";
+el.textContent=icons[i%5];
+
+el.style.left=Math.random()*100+"vw";
+
+el.style.fontSize=
+(12+Math.random()*20)+"px";
+
+el.style.animationDelay=
+Math.random()*.5+"s";
+
+document.body.appendChild(el);
+
+setTimeout(()=>el.remove(),4000);
+
+}
+}
+
+function openAnimation(list,test){
+
+if(!isAdmin()||!list.length)return;
+
+clearTimeout(animationTimer);
+
+animationNames=list.slice(0,8);
+animationIndex=0;
+animationActive=true;
+animationRunning=false;
+
+$("penguinShow").hidden=false;
+
+$("penguinMode").textContent=test?
+"🎮 模擬模式｜不影響正式資料":
+"🏆 正式中獎名單揭曉";
+
+$("penguinNames").replaceChildren();
+$("penguinCount").textContent="";
+$("penguinGift").textContent="🎁";
+
+$("penguinName").textContent=
+"準備迎接 "+
+animationNames.length+
+" 位幸運得主！";
+
+$("penguinNext").disabled=false;
+
+$("penguinNext").textContent=
+"🎉 開始揭曉";
+}
+
+$("demo").onclick=()=>{
+
+if(!isAdmin())return;
+
+prepareAudio();
+
+openAnimation([
+"測試寶寶A",
+"測試寶寶B",
+"測試寶寶C",
+"測試寶寶D",
+"測試寶寶E",
+"測試寶寶F",
+"測試寶寶G",
+"測試寶寶H"
+],true);
+};
+
+$("animate").onclick=()=>{
+
+if($("animate").disabled||!isAdmin())return;
+
+prepareAudio();
+
+openAnimation(
+winners.map(v=>maskName(v.name)),
+false
+);
+};
+
+function revealWinner(){
+
+if(!animationActive||!isAdmin()){
+
+closeAnimation();
+return;
+}
+
+$("penguinCount").textContent="🎉";
+$("penguinGift").textContent="🎊";
+
+const name=animationNames[animationIndex];
+
+$("penguinName").textContent=
+"恭喜第 "+(animationIndex+1)+
+" 位："+name;
+
+const card=document.createElement("div");
+
+card.className="penguinWinner";
+
+card.textContent=
+"🏆 第 "+(animationIndex+1)+
+" 位 "+name;
+
+$("penguinNames").appendChild(card);
+
+animationIndex++;
+animationRunning=false;
+
+playSound();
+confetti();
+
+if(animationIndex>=animationNames.length){
+
+$("penguinNext").textContent=
+"🎊 全部揭曉完成";
+
+$("penguinNext").disabled=true;
+
+}else{
+
+$("penguinNext").textContent=
+"🎁 揭曉下一位";
+
+$("penguinNext").disabled=false;
+}
+}
+
+$("penguinNext").onclick=()=>{
+
+if(!animationActive||
+animationRunning||
+!isAdmin()||
+animationIndex>=animationNames.length)return;
+
+prepareAudio();
+
+animationRunning=true;
+
+$("penguinNext").disabled=true;
+
+$("penguinGift").textContent="🎁";
+
+$("penguinName").textContent=
+"幸運得主即將揭曉...";
+
+let count=3;
+
+$("penguinCount").textContent=count;
+
+function tick(){
+
+if(!animationActive||!isAdmin()){
+
+closeAnimation();
+return;
+}
+
+count--;
+
+if(count>0){
+
+$("penguinCount").textContent=count;
+
+animationTimer=setTimeout(tick,1000);
+
+}else{
+
+revealWinner();
+}
+}
+
+animationTimer=setTimeout(tick,1000);
+};
+
+function closeAnimation(){
+
+animationActive=false;
+animationRunning=false;
+
+clearTimeout(animationTimer);
+
+animationNames=[];
+animationIndex=0;
+
+$("penguinNames").replaceChildren();
+$("penguinName").textContent="";
+$("penguinShow").hidden=true;
+
+document.querySelectorAll(".confetti")
+.forEach(el=>el.remove());
+}
+
+$("penguinClose").onclick=closeAnimation;
+
 </script>
-  https://github.com/a0986181996-pixel/tofu-baby-gender/edit/main/admin.html?utm_source=chatgpt.com
 </body>
 </html>
