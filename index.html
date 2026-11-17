@@ -1,4 +1,4 @@
-<!-- Website republish -->
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -6,187 +6,292 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>豆腐寶寶性別猜猜樂</title>
 <style>
+*{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:linear-gradient(120deg,#ffe0ed,#dcefff);
-  color:#665566;
-  text-align:center;
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(120deg,#ffe0ed,#dcefff);
+color:#665566;
+text-align:center;
+min-height:100vh;
 }
-main{max-width:450px;margin:45px auto;padding:20px}
+main{
+max-width:450px;
+margin:30px auto;
+padding:20px;
+}
 .card{
-  background:white;
-  border-radius:25px;
-  padding:30px 20px;
-  box-shadow:0 8px 25px #9993;
+background:white;
+border-radius:25px;
+padding:30px 20px;
+box-shadow:0 8px 25px #9993;
 }
 h1{color:#e887ad}
-.options{display:flex;gap:12px;margin:25px 0}
+.options{
+display:flex;
+gap:12px;
+margin:25px 0;
+}
 .option{
-  flex:1;padding:25px 8px;
-  border:2px solid transparent;
-  border-radius:18px;
-  background:#f6f6f6;
-  cursor:pointer;
+flex:1;
+padding:25px 8px;
+border:2px solid transparent;
+border-radius:18px;
+cursor:pointer;
+color:#665566;
+font-size:18px;
 }
 .boy{background:#e0f1ff}
 .girl{background:#ffe2ee}
-.option.selected{border-color:#ae79b7}
-button{
-  background:#e887ad;color:white;
-  border:0;border-radius:25px;
-  padding:15px 35px;font-size:17px;
+.option.selected{
+border-color:#ae79b7;
 }
-small{color:#888}
+.field{
+text-align:left;
+margin:18px 0;
+}
+label{
+display:block;
+margin-bottom:8px;
+font-weight:bold;
+}
+input[type=text],textarea{
+width:100%;
+padding:14px;
+border:1px solid #ddd;
+border-radius:12px;
+font-size:16px;
+font-family:inherit;
+}
+textarea{min-height:85px}
+.consent{
+display:flex;
+align-items:flex-start;
+gap:8px;
+text-align:left;
+font-size:13px;
+line-height:1.7;
+}
+.submit{
+background:#e887ad;
+color:white;
+border:0;
+border-radius:25px;
+padding:15px 35px;
+font-size:17px;
+cursor:pointer;
+}
+button:disabled{opacity:.55}
+small{
+color:#888;
+line-height:1.8;
+}
+#msg{line-height:1.7}
 </style>
 </head>
 <body>
 <main>
 <div class="card">
+
 <h2>🩷 BOY OR GIRL? 💙</h2>
 <h1>豆腐寶寶</h1>
 <h2>性別猜猜樂</h2>
+
 <p>猜猜我是小王子還是小公主？</p>
 <p>猜對就有機會抽中幸運好禮！</p>
+
+<form id="voteForm">
+
 <div class="options">
-<div class="option boy" onclick="choose('boy',this)">
+<button type="button" class="option boy" data-choice="boy" aria-pressed="false">
 💙<h3>男寶寶</h3>
-</div>
-<div class="option girl" onclick="choose('girl',this)">
+</button>
+
+<button type="button" class="option girl" data-choice="girl" aria-pressed="false">
 🩷<h3>女寶寶</h3>
+</button>
 </div>
+
+<div class="field">
+<label for="name">👤 姓名或暱稱</label>
+<input type="text" id="name" maxlength="50" placeholder="請輸入姓名或暱稱" required>
 </div>
+
+<div class="field">
+<label for="address">🏠 收件地址</label>
+<textarea id="address" maxlength="200" placeholder="請填寫完整收件地址，方便寄送獎品" required></textarea>
+</div>
+
+<label class="consent">
+<input type="checkbox" id="consent" required>
+<span>我同意活動主辦人蒐集姓名、地址及投票資料，僅供本次活動、抽獎及獎品寄送使用。</span>
+</label>
+
 <p>投票截止：2026/12/04</p>
 <p>🎁 幸運抽獎：5名</p>
-<button onclick="notice()">送出我的猜測</button>
-<p id="message" role="status"></p>
-<small>活動期間不公開投票結果</small>
+
+<button class="submit" id="submitBtn" type="submit" disabled>
+送出我的猜測
+</button>
+
+<p id="msg" role="status">連線中，請稍候...</p>
+
+<small>
+活動期間不公開投票結果<br>
+姓名及收件地址不對外公開
+</small>
+
+</form>
 </div>
 </main>
-  
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 
-import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
+import { getDatabase, ref, get, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
 
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
 const firebaseConfig = {
-
-  apiKey: "AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
-
-  authDomain: "tofu-baby-gender-2026.firebaseapp.com",
-
-  databaseURL: "https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
-
-  projectId: "tofu-baby-gender-2026",
-
-  storageBucket: "tofu-baby-gender-2026.firebasestorage.app",
-
-  messagingSenderId: "478157000720",
-
-  appId: "1:478157000720:web:354481824c1c4aef53ba95"
-
+apiKey: "AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
+authDomain: "tofu-baby-gender-2026.firebaseapp.com",
+databaseURL: "https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
+projectId: "tofu-baby-gender-2026",
+storageBucket: "tofu-baby-gender-2026.firebasestorage.app",
+messagingSenderId: "478157000720",
+appId: "1:478157000720:web:354481824c1c4aef53ba95"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getDatabase(app);
-
 const auth = getAuth(app);
 
+const deadline = 1796400000000;
 
+const form = document.getElementById("voteForm");
+const msg = document.getElementById("msg");
+const btn = document.getElementById("submitBtn");
 
 let choice = "";
-
 let busy = false;
+let voted = false;
 
-window.choose = function(value, element) {
+document.querySelectorAll(".option").forEach(element => {
+element.addEventListener("click", () => {
+if(busy || voted) return;
 
-  choice = value;
+choice = element.dataset.choice;
 
-  document.querySelectorAll(".option")
+document.querySelectorAll(".option").forEach(x => {
+x.classList.remove("selected");
+x.setAttribute("aria-pressed","false");
+});
 
-    .forEach(x => x.classList.remove("selected"));
+element.classList.add("selected");
+element.setAttribute("aria-pressed","true");
+});
+});
 
-  element.classList.add("selected");
+async function anonymousUser(){
+await auth.authStateReady();
 
-};
+if(auth.currentUser && !auth.currentUser.isAnonymous){
+await signOut(auth);
+}
 
-window.notice = async function() {
+return auth.currentUser ||
+(await signInAnonymously(auth)).user;
+}
 
-  const msg = document.getElementById("message");
+async function checkVote(){
+try{
+if(Date.now() >= deadline){
+msg.textContent = "投票活動已截止，謝謝參與！";
+return;
+}
 
-  if (busy) return;
+const user = await anonymousUser();
+const snapshot = await get(ref(db,"votes/" + user.uid));
 
-  if (!choice) {
+if(snapshot.exists()){
+voted = true;
+msg.textContent = "您已完成投票，謝謝參與！";
+}else{
+btn.disabled = false;
+msg.textContent = "";
+}
 
-    msg.textContent = "請先選擇男寶寶或女寶寶";
+}catch(error){
+msg.textContent = "連線失敗：" + (error.code || error.message || String(error));
+}
+}
 
-    return;
+form.addEventListener("submit",async event => {
+event.preventDefault();
 
-  }
+if(busy || voted) return;
 
-  if (Date.now() >= Date.parse("2026-12-05T00:00:00+08:00")) {
+const name = document.getElementById("name").value.trim();
+const address = document.getElementById("address").value.trim();
+const consent = document.getElementById("consent").checked;
 
-    msg.textContent = "投票活動已截止";
+if(Date.now() >= deadline){
+msg.textContent = "投票活動已截止！";
+btn.disabled = true;
+return;
+}
 
-    return;
+if(!choice){
+msg.textContent = "請先選擇男寶寶或女寶寶！";
+return;
+}
 
-  }
+if(!name || !address || !consent){
+msg.textContent = "請完整填寫資料並勾選同意！";
+return;
+}
 
-  const selectedChoice = choice;
+busy = true;
+btn.disabled = true;
+msg.textContent = "正在送出投票，請稍候...";
 
-  busy = true;
+try{
+const user = await anonymousUser();
+const voteRef = ref(db,"votes/" + user.uid);
+const snapshot = await get(voteRef);
 
-  try {
+if(snapshot.exists()){
+voted = true;
+msg.textContent = "您已經投過票囉！";
+return;
+}
 
-    msg.textContent = "正在匿名登入，請稍候...";
+await set(voteRef,{
+name:name,
+address:address,
+gender:choice,
+createdAt:serverTimestamp(),
+consent:true
+});
 
-    const user = auth.currentUser ||
+voted = true;
+document.getElementById("name").value = "";
+document.getElementById("address").value = "";
+document.getElementById("consent").checked = false;
 
-    (await signInAnonymously(auth)).user;
+msg.textContent = "🎉 投票成功！謝謝您的參與，祝您幸運中獎！";
 
-    const result = await runTransaction(
+}catch(error){
+msg.textContent = "投票失敗：" + (error.code || error.message || String(error));
+}finally{
+busy = false;
+btn.disabled = voted || Date.now() >= deadline;
+}
+});
 
-      ref(db, "votes/" + user.uid),
-
-      current => current === null ? {
-
-        name: user.displayName || "",
-
-        gender: selectedChoice,
-
-        time: Date.now()
-
-      } : undefined
-
-    );
-
-    if (result.committed) {
-
-      msg.textContent = "🎉 投票成功！祝你成為幸運得主！";
-
-    } else {
-
-      msg.textContent = "❤️ 你已經投過票囉！";
-
-    }
-
-  } catch (error) {
-
-    msg.textContent = "投票未完成：" + error.code;
-
-  } finally {
-
-    busy = false;
-
-  }
-
-};
+checkVote();
 
 </script>
 </body>
 </html>
-  
