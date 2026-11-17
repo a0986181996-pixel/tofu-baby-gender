@@ -4,13 +4,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>豆腐寶寶｜抽獎管理後台</title>
+<title>豆腐寶寶｜管理後台</title>
 <style>
 *{box-sizing:border-box}
 body{
-font-family:system-ui,sans-serif;
 background:#fff5e9;
 color:#655046;
+font-family:system-ui,sans-serif;
 padding:15px;
 }
 main{
@@ -21,7 +21,8 @@ padding:22px;
 border-radius:24px;
 }
 h1,h2{text-align:center}
-button,select{
+button,select,a.link{
+display:block;
 width:100%;
 padding:14px;
 margin:8px 0;
@@ -29,9 +30,11 @@ border:0;
 border-radius:12px;
 font-size:16px;
 }
-button{
+button,a.link{
 background:#b48c70;
 color:white;
+text-align:center;
+text-decoration:none;
 }
 button:disabled{opacity:.45}
 select{background:#f6eee5}
@@ -46,8 +49,8 @@ background:#eee0d1;
 .boy{background:#e3efff}
 .girl{background:#ffe4ed}
 .record{
-border-bottom:1px solid #ddd;
 padding:12px 0;
+border-bottom:1px solid #ddd;
 overflow-wrap:anywhere;
 }
 .winner{
@@ -57,29 +60,36 @@ margin:10px 0;
 border-radius:12px;
 overflow-wrap:anywhere;
 }
+.publish{background:#927457}
 [hidden]{display:none!important}
 #status,#uid{overflow-wrap:anywhere}
 </style>
 </head>
+
 <body>
 <main>
 <h1>👶 豆腐寶寶</h1>
 <h2>管理員專屬後台</h2>
+
 <button id="login">Google 管理員登入</button>
 <button id="logout" hidden>登出</button>
+
 <p id="status">尚未登入</p>
 <p id="uid"></p>
 
 <section id="panel" hidden>
+
 <div class="stats">
 <div class="stat boy">
 💙 男寶寶
 <h2 id="boy">0</h2>
 </div>
+
 <div class="stat girl">
 🩷 女寶寶
 <h2 id="girl">0</h2>
 </div>
+
 <div class="stat">
 總票數
 <h2 id="total">0</h2>
@@ -87,8 +97,11 @@ overflow-wrap:anywhere;
 </div>
 
 <hr>
+
 <h2>🎁 幸運大抽獎</h2>
+
 <label>寶寶正確性別</label>
+
 <select id="gender">
 <option value="">請選擇性別</option>
 <option value="boy">💙 男寶寶</option>
@@ -97,23 +110,46 @@ overflow-wrap:anywhere;
 
 <p>預定中獎人數：8 位</p>
 <p id="eligible">符合資格：0 人</p>
+
 <button id="draw" disabled>
 🎉 開始正式抽獎
 </button>
+
 <p id="drawStatus"></p>
 
 <h2>🏆 幸運得主</h2>
 <div id="winners">尚未抽獎</div>
+
 <button id="exportWinners" disabled>
 📥 匯出中獎名單
 </button>
 
 <hr>
+
+<h2>📢 公布中獎名單</h2>
+
+<p id="publishStatus">尚未公布</p>
+<p>公布後將遮蔽姓名，不公開收件地址。</p>
+
+<button id="publish" class="publish" disabled>
+📢 一鍵公布中獎名單
+</button>
+
+<a class="link" href="winners.html"
+target="_blank" rel="noopener noreferrer">
+🌐 查看公開中獎網頁
+</a>
+
+<hr>
+
 <h2>📋 全部投票名單</h2>
+
 <div id="list"></div>
+
 <button id="exportAll" disabled>
 📥 匯出全部投票名單
 </button>
+
 </section>
 </main>
 
@@ -162,9 +198,13 @@ const $=id=>document.getElementById(id);
 let votes=[];
 let winners=[];
 let result=null;
+let publicResult=null;
+
 let ready=false;
 let lotteryReady=false;
+let publicReady=false;
 let offsetReady=false;
+
 let offset=0;
 let busy=false;
 let stops=[];
@@ -172,6 +212,26 @@ let stops=[];
 function genderText(g){
 return g==="boy"?"男寶寶":
 g==="girl"?"女寶寶":"未知";
+}
+
+function isAdmin(){
+return auth.currentUser?.uid===ADMIN_UID
+&& !auth.currentUser.isAnonymous;
+}
+
+function maskName(name){
+const chars=Array.from(
+String(name||"").trim()
+);
+
+if(chars.length<=1)return "○";
+if(chars.length===2){
+return chars[0]+"○";
+}
+
+return chars[0]+
+"○".repeat(Math.min(chars.length-2,46))+
+chars[chars.length-1];
 }
 
 function update(){
@@ -186,20 +246,37 @@ $("eligible").textContent=
 const closed=Date.now()+offset>=DEADLINE;
 
 $("draw").disabled=
-!ready||!lotteryReady||!offsetReady||
-busy||!!result||!gender||!count||!closed;
+!isAdmin()||!ready||!lotteryReady||
+!offsetReady||busy||!!result||
+!gender||!count||!closed;
 
 $("gender").disabled=!!result||busy;
 $("exportAll").disabled=!ready;
+
 $("exportWinners").disabled=
-!ready||!lotteryReady||!result||!winners.length;
+!ready||!result||!winners.length;
+
+$("publish").disabled=
+!isAdmin()||!ready||!lotteryReady||
+!publicReady||!result||!winners.length||
+winners.length!==Object.keys(
+result?.winners||{}
+).length||
+winners.length>WINNER_COUNT||
+busy||publicResult?.published===true;
 
 $("drawStatus").textContent=result?
 "正式抽獎已完成，不可重複抽獎":
-!lotteryReady?"等待抽獎資料權限":
+!lotteryReady?"等待抽獎權限":
 !offsetReady?"等待伺服器時間":
 !closed?"尚未到投票截止時間":
 "投票已截止，可以抽獎";
+
+$("publishStatus").textContent=
+publicResult?.published===true?
+"✅ 中獎名單已正式公布":
+!publicReady?"等待公布資料權限":
+"尚未公布";
 }
 
 function render(){
@@ -220,6 +297,7 @@ div.textContent=
 (i+1)+"．"+v.name+
 "｜"+genderText(v.gender)+
 "｜收件地址："+v.address;
+
 $("list").appendChild(div);
 });
 
@@ -240,6 +318,7 @@ div.textContent=
 "🏆 幸運得主 "+(i+1)+
 "｜"+v.name+
 "｜收件地址："+v.address;
+
 $("winners").appendChild(div);
 });
 }else{
@@ -252,12 +331,16 @@ update();
 $("login").onclick=async()=>{
 try{
 const provider=new GoogleAuthProvider();
+
 provider.setCustomParameters({
 prompt:"select_account"
 });
+
 await signInWithPopup(auth,provider);
+
 }catch(e){
-$("status").textContent="登入失敗："+e.code;
+$("status").textContent=
+"登入失敗："+e.code;
 }
 };
 
@@ -266,11 +349,15 @@ $("logout").onclick=()=>signOut(auth);
 onAuthStateChanged(auth,user=>{
 stops.forEach(fn=>fn());
 stops=[];
+
 votes=[];
 winners=[];
 result=null;
+publicResult=null;
+
 ready=false;
 lotteryReady=false;
+publicReady=false;
 offsetReady=false;
 
 $("panel").hidden=true;
@@ -280,6 +367,7 @@ $("gender").value="";
 $("uid").textContent="";
 
 const loggedIn=!!user&&!user.isAnonymous;
+
 $("login").hidden=loggedIn;
 $("logout").hidden=!loggedIn;
 
@@ -290,7 +378,7 @@ return;
 
 $("uid").textContent="UID："+user.uid;
 
-if(user.uid!==ADMIN_UID){
+if(!isAdmin()){
 $("status").textContent="非授權管理員";
 return;
 }
@@ -312,6 +400,7 @@ ref(db,"votes"),
 s=>{
 votes=Object.entries(s.val()||{})
 .map(([uid,v])=>({...v,uid}));
+
 ready=true;
 $("status").textContent="資料讀取成功";
 render();
@@ -338,18 +427,35 @@ $("status").textContent="抽獎權限讀取失敗";
 render();
 }
 ));
+
+stops.push(onValue(
+ref(db,"publicWinners"),
+s=>{
+publicResult=s.val();
+publicReady=true;
+update();
+},
+e=>{
+publicReady=false;
+$("status").textContent="公布資料讀取失敗";
+update();
+}
+));
 });
 
 $("gender").onchange=update;
+
 setInterval(update,1000);
 
 function randomIndex(max){
 const a=new Uint32Array(1);
 const range=4294967296;
 const limit=range-(range%max);
+
 do{
 crypto.getRandomValues(a);
 }while(a[0]>=limit);
+
 return a[0]%max;
 }
 
@@ -359,8 +465,8 @@ if($("draw").disabled)return;
 const gender=$("gender").value;
 
 if(!confirm(
-"確認正確性別為"+genderText(gender)+
-"，正式抽獎只能執行一次，確定開始？"
+"確認寶寶性別為"+genderText(gender)+
+"？正式抽獎只能執行一次。"
 ))return;
 
 busy=true;
@@ -393,6 +499,7 @@ const saved=await runTransaction(
 ref(db,"lottery"),
 current=>{
 if(current!==null)return;
+
 return {
 gender:gender,
 createdAt:serverTimestamp(),
@@ -406,6 +513,7 @@ alert("🎉 正式抽獎完成！");
 }else{
 alert("已存在正式抽獎紀錄");
 }
+
 }catch(e){
 alert("抽獎失敗："+e.message);
 }finally{
@@ -414,11 +522,63 @@ update();
 }
 };
 
+$("publish").onclick=async()=>{
+if($("publish").disabled)return;
+
+const names={};
+
+winners.slice(0,WINNER_COUNT)
+.forEach((v,i)=>{
+names[i]=maskName(v.name);
+});
+
+const preview=Object.values(names).join("\n");
+
+if(!confirm(
+"確認公開寶寶性別及以下中獎姓名？\n\n"+
+genderText(result.gender)+"\n\n"+
+preview+"\n\n不會公布收件地址。"
+))return;
+
+busy=true;
+update();
+
+try{
+const payload={
+published:true,
+gender:result.gender,
+names:names
+};
+
+const saved=await runTransaction(
+ref(db,"publicWinners"),
+current=>{
+if(current!==null)return;
+return payload;
+}
+);
+
+if(saved.committed){
+alert("🎉 中獎名單已正式公布！");
+}else{
+alert("已有公開中獎紀錄");
+}
+
+}catch(e){
+alert("公布失敗："+e.message);
+}finally{
+busy=false;
+update();
+}
+};
+
 function csvCell(value){
 let text=String(value??"");
+
 if(/^[\s]*[=+@-]|^[\t\r\n]/.test(text)){
 text="'"+text;
 }
+
 return '"'+text.replace(/"/g,'""')+'"';
 }
 
@@ -440,25 +600,29 @@ type:"text/csv;charset=utf-8;"
 
 const url=URL.createObjectURL(blob);
 const a=document.createElement("a");
+
 a.href=url;
 a.download=name+".csv";
+
 document.body.appendChild(a);
 a.click();
 a.remove();
+
 setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 $("exportAll").onclick=()=>{
-if(ready){
+if(isAdmin()&&ready){
 downloadCSV(votes,"豆腐寶寶全部投票名單");
 }
 };
 
 $("exportWinners").onclick=()=>{
-if(ready&&result&&winners.length){
+if(isAdmin()&&ready&&result&&winners.length){
 downloadCSV(winners,"豆腐寶寶幸運中獎名單");
 }
 };
+
 </script>
 </body>
 </html>
