@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>豆腐寶寶｜幸運中獎名單</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+padding:20px;
+font-family:system-ui,sans-serif;
+background:#faf2e7;
+color:#80634f;
+}
+main{
+max-width:550px;
+margin:auto;
+background:#fffdf9;
+border-radius:30px;
+padding:25px;
+box-shadow:0 10px 40px #aa90752a;
+text-align:center;
+}
+.bear{font-size:75px}
+h1{
+font-size:27px;
+margin:10px 0;
+}
+.subtitle{
+color:#b0957b;
+font-size:15px;
+}
+.gender{
+background:#fff1de;
+border-radius:20px;
+padding:25px;
+margin:20px 0;
+font-size:23px;
+font-weight:bold;
+}
+.winner{
+background:#fff;
+border:1px solid #ebdece;
+border-radius:15px;
+padding:17px;
+margin:12px 0;
+font-size:18px;
+}
+.wait{
+color:#b0957b;
+font-size:14px;
+}
+.message{
+line-height:1.9;
+margin-top:25px;
+}
+a{
+display:block;
+background:#b48c70;
+color:white;
+text-decoration:none;
+padding:15px;
+border-radius:15px;
+margin-top:25px;
+}
+footer{
+font-size:13px;
+color:#b0957b;
+margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+<main>
+
+<div class="bear">🧸</div>
+<h1>豆腐寶寶性別猜猜樂</h1>
+<p class="subtitle">
+感謝大家的祝福與參與
+</p>
+
+<h2>🎊 幸運中獎名單 🎊</h2>
+
+<div class="gender" id="gender">
+💙 敬請期待 🩷
+</div>
+
+<p id="status">正在讀取公布結果...</p>
+
+<div id="winners"></div>
+
+<div class="message">
+🎁 謝謝大家的熱情參與<br>
+中獎禮物將由主辦人安排寄送<br>
+一起迎接可愛的豆腐寶寶 ❤️
+</div>
+
+<a href="index.html">
+返回性別猜猜樂首頁
+</a>
+
+<footer>
+為保護個人隱私，
+中獎姓名採部分遮蔽，
+不公開收件地址。
+</footer>
+
+</main>
+
+<script type="module">
+import {initializeApp} from
+"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+onValue
+} from
+"https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
+authDomain:"tofu-baby-gender-2026.firebaseapp.com",
+databaseURL:"https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
+projectId:"tofu-baby-gender-2026",
+storageBucket:"tofu-baby-gender-2026.firebasestorage.app",
+messagingSenderId:"478157000720",
+appId:"1:478157000720:web:354481824c1c4aef53ba95"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+
+const gender=document.getElementById("gender");
+const status=document.getElementById("status");
+const winners=document.getElementById("winners");
+
+function waiting(message){
+gender.textContent="💙 敬請期待 🩷";
+gender.style.background="#fff1de";
+status.textContent=message;
+winners.replaceChildren();
+
+for(let i=1;i<=8;i++){
+const div=document.createElement("div");
+div.className="winner";
+div.textContent=
+"🏆 第 "+i+" 位幸運得主｜尚未公布";
+winners.appendChild(div);
+}
+}
+
+waiting("正式中獎名單尚未公布");
+
+onValue(ref(db,"publicWinners"),snapshot=>{
+const data=snapshot.val();
+
+if(!data||data.published!==true){
+waiting("正式中獎名單尚未公布");
+return;
+}
+
+if(data.gender==="boy"){
+gender.textContent="💙 是男寶寶！";
+gender.style.background="#dcecff";
+}else if(data.gender==="girl"){
+gender.textContent="🩷 是女寶寶！";
+gender.style.background="#ffe0ed";
+}else{
+waiting("公布資料尚未完成");
+return;
+}
+
+const names=Object.values(data.names||{})
+.filter(v=>typeof v==="string")
+.slice(0,8);
+
+status.textContent=
+"🎉 恭喜以下 "+names.length+" 位幸運得主！";
+
+winners.replaceChildren();
+
+names.forEach((name,i)=>{
+const div=document.createElement("div");
+div.className="winner";
+div.textContent=
+"🏆 第 "+(i+1)+" 位｜"+name;
+winners.appendChild(div);
+});
+
+},error=>{
+waiting("中獎結果目前無法讀取，請稍後再試");
+});
+</script>
+</body>
+</html>
