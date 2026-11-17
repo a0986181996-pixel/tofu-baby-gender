@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>豆腐寶寶性別猜猜樂</title>
+
 <style>
 *{box-sizing:border-box}
 body{
@@ -24,6 +25,7 @@ padding:20px;
 background:white;
 border-radius:25px;
 padding:30px 20px;
+margin-bottom:20px;
 box-shadow:0 8px 25px #9993;
 }
 h1{color:#e887ad}
@@ -87,13 +89,52 @@ color:#888;
 line-height:1.8;
 }
 #msg{line-height:1.7}
+.revealCard{
+background:#fffaf1;
+}
+.penguins{
+font-size:55px;
+animation:dance 1s infinite alternate;
+}
+@keyframes dance{
+from{transform:rotate(-7deg)}
+to{transform:rotate(7deg)}
+}
+.revealLink,.winnerLink{
+display:block;
+color:white;
+padding:16px;
+border-radius:15px;
+text-decoration:none;
+font-weight:bold;
+margin-top:18px;
+}
+.revealLink{
+background:linear-gradient(100deg,#91bce3,#e887ad);
+}
+.winnerLink{
+background:#b48c70;
+}
+.winnerCard{
+background:#fff0d9;
+}
+@media(prefers-reduced-motion:reduce){
+.penguins{animation:none}
+}
 </style>
 </head>
+
 <body>
 <main>
+
 <div class="card">
 
 <h2>🩷 BOY OR GIRL? 💙</h2>
+
+<div class="penguins">
+🐧 🎀 🐧
+</div>
+
 <h1>豆腐寶寶</h1>
 <h2>性別猜猜樂</h2>
 
@@ -103,38 +144,67 @@ line-height:1.8;
 <form id="voteForm">
 
 <div class="options">
-<button type="button" class="option boy" data-choice="boy" aria-pressed="false">
+
+<button type="button"
+class="option boy"
+data-choice="boy"
+aria-pressed="false">
 💙<h3>男寶寶</h3>
 </button>
 
-<button type="button" class="option girl" data-choice="girl" aria-pressed="false">
+<button type="button"
+class="option girl"
+data-choice="girl"
+aria-pressed="false">
 🩷<h3>女寶寶</h3>
 </button>
+
 </div>
 
 <div class="field">
 <label for="name">👤 姓名或暱稱</label>
-<input type="text" id="name" maxlength="50" placeholder="請輸入姓名或暱稱" required>
+
+<input type="text"
+id="name"
+maxlength="50"
+placeholder="請輸入姓名或暱稱"
+required>
+
 </div>
 
 <div class="field">
 <label for="address">🏠 收件地址</label>
-<textarea id="address" maxlength="200" placeholder="請填寫完整收件地址，方便寄送獎品" required></textarea>
+
+<textarea id="address"
+maxlength="200"
+placeholder="請填寫完整收件地址，方便寄送獎品"
+required></textarea>
+
 </div>
 
 <label class="consent">
-<input type="checkbox" id="consent" required>
-<span>我同意活動主辦人蒐集姓名、地址及投票資料，僅供本次活動、抽獎及獎品寄送使用。</span>
+
+<input type="checkbox"
+id="consent" required>
+
+<span>
+我同意活動主辦人蒐集姓名、地址及投票資料，僅供本次活動、抽獎及獎品寄送使用。
+</span>
+
 </label>
 
 <p>投票截止：2026/12/04</p>
 <p>🎁 幸運抽獎：8名</p>
 
-<button class="submit" id="submitBtn" type="submit" disabled>
+<button class="submit"
+id="submitBtn"
+type="submit" disabled>
 送出我的猜測
 </button>
 
-<p id="msg" role="status">連線中，請稍候...</p>
+<p id="msg" role="status">
+連線中，請稍候...
+</p>
 
 <small>
 活動期間不公開投票結果<br>
@@ -143,162 +213,330 @@ line-height:1.8;
 
 </form>
 </div>
+
+<div class="card revealCard">
+
+<h2>🎀 寶寶性別揭曉派對</h2>
+
+<div class="penguins">
+🐧 🎁 🐧
+</div>
+
+<h2>BOY OR GIRL?</h2>
+
+<p>小王子還是小公主？</p>
+<p>神秘禮物盒即將揭曉！</p>
+<p id="revealStatus">
+性別揭曉功能籌備中，敬請期待！
+</p>
+
+<a id="revealLink"
+class="revealLink"
+href="reveal.html"
+hidden>
+🎉 觀看寶寶性別揭曉
+</a>
+
+</div>
+
+<div class="card winnerCard">
+
+<h2>🎁 幸運中獎名單</h2>
+
+<div style="font-size:50px">
+🐧 🏆
+</div>
+
+<p>8 位幸運得主，敬請期待！</p>
+
+<a href="winners.html"
+class="winnerLink">
+🏆 查看中獎名單
+</a>
+
+</div>
+
 </main>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 
-import { getDatabase, ref, get, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
+import {
+getDatabase,
+ref,
+get,
+set,
+onValue,
+serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
 
-import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import {
+getAuth,
+signInAnonymously,
+signOut
+}
+from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
-authDomain: "tofu-baby-gender-2026.firebaseapp.com",
-databaseURL: "https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
-projectId: "tofu-baby-gender-2026",
-storageBucket: "tofu-baby-gender-2026.firebasestorage.app",
-messagingSenderId: "478157000720",
-appId: "1:478157000720:web:354481824c1c4aef53ba95"
+const firebaseConfig={
+apiKey:"AIzaSyDoYaeKknmL12xhRsgSV1ovowB9OJkgnT8",
+authDomain:"tofu-baby-gender-2026.firebaseapp.com",
+databaseURL:"https://tofu-baby-gender-2026-default-rtdb.firebaseio.com",
+projectId:"tofu-baby-gender-2026",
+storageBucket:"tofu-baby-gender-2026.firebasestorage.app",
+messagingSenderId:"478157000720",
+appId:"1:478157000720:web:354481824c1c4aef53ba95"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const auth=getAuth(app);
 
-const deadline = 1796400000000;
+const deadline=1796400000000;
 
-const form = document.getElementById("voteForm");
-const msg = document.getElementById("msg");
-const btn = document.getElementById("submitBtn");
+const form=document.getElementById("voteForm");
+const msg=document.getElementById("msg");
+const btn=document.getElementById("submitBtn");
 
-let choice = "";
-let busy = false;
-let voted = false;
+let choice="";
+let busy=false;
+let voted=false;
 
-document.querySelectorAll(".option").forEach(element => {
-element.addEventListener("click", () => {
-if(busy || voted) return;
+document.querySelectorAll(".option")
+.forEach(element=>{
 
-choice = element.dataset.choice;
+element.addEventListener("click",()=>{
 
-document.querySelectorAll(".option").forEach(x => {
+if(busy||voted)return;
+
+choice=element.dataset.choice;
+
+document.querySelectorAll(".option")
+.forEach(x=>{
+
 x.classList.remove("selected");
 x.setAttribute("aria-pressed","false");
+
 });
 
 element.classList.add("selected");
 element.setAttribute("aria-pressed","true");
+
 });
+
 });
 
 async function anonymousUser(){
+
 await auth.authStateReady();
 
-if(auth.currentUser && !auth.currentUser.isAnonymous){
+if(auth.currentUser&&!auth.currentUser.isAnonymous){
 await signOut(auth);
 }
 
-return auth.currentUser ||
+return auth.currentUser||
 (await signInAnonymously(auth)).user;
+
 }
 
 async function checkVote(){
+
 try{
-if(Date.now() >= deadline){
-msg.textContent = "投票活動已截止，謝謝參與！";
+
+if(Date.now()>=deadline){
+
+msg.textContent=
+"投票活動已截止，謝謝參與！";
+
 return;
 }
 
-const user = await anonymousUser();
-const snapshot = await get(ref(db,"votes/" + user.uid));
+const user=await anonymousUser();
+
+const snapshot=await get(
+ref(db,"votes/"+user.uid)
+);
 
 if(snapshot.exists()){
-voted = true;
-msg.textContent = "您已完成投票，謝謝參與！";
+
+voted=true;
+
+msg.textContent=
+"您已完成投票，謝謝參與！";
+
 }else{
-btn.disabled = false;
-msg.textContent = "";
+
+btn.disabled=false;
+msg.textContent="";
+
 }
 
 }catch(error){
-msg.textContent = "連線失敗：" + (error.code || error.message || String(error));
-}
+
+msg.textContent=
+"連線失敗："+(
+error.code||
+error.message||
+String(error)
+);
+
 }
 
-form.addEventListener("submit",async event => {
+}
+
+form.addEventListener("submit",async event=>{
+
 event.preventDefault();
 
-if(busy || voted) return;
+if(busy||voted)return;
 
-const name = document.getElementById("name").value.trim();
-const address = document.getElementById("address").value.trim();
-const consent = document.getElementById("consent").checked;
+const name=
+document.getElementById("name")
+.value.trim();
 
-if(Date.now() >= deadline){
-msg.textContent = "投票活動已截止！";
-btn.disabled = true;
+const address=
+document.getElementById("address")
+.value.trim();
+
+const consent=
+document.getElementById("consent")
+.checked;
+
+if(Date.now()>=deadline){
+
+msg.textContent="投票活動已截止！";
+btn.disabled=true;
 return;
+
 }
 
 if(!choice){
-msg.textContent = "請先選擇男寶寶或女寶寶！";
+
+msg.textContent=
+"請先選擇男寶寶或女寶寶！";
+
 return;
+
 }
 
-if(!name || !address || !consent){
-msg.textContent = "請完整填寫資料並勾選同意！";
+if(!name||!address||!consent){
+
+msg.textContent=
+"請完整填寫資料並勾選同意！";
+
 return;
+
 }
 
-busy = true;
-btn.disabled = true;
-msg.textContent = "正在送出投票，請稍候...";
+busy=true;
+btn.disabled=true;
+
+msg.textContent=
+"正在送出投票，請稍候...";
 
 try{
-const user = await anonymousUser();
-const voteRef = ref(db,"votes/" + user.uid);
-const snapshot = await get(voteRef);
+
+const user=await anonymousUser();
+
+const voteRef=ref(db,"votes/"+user.uid);
+
+const snapshot=await get(voteRef);
 
 if(snapshot.exists()){
-voted = true;
-msg.textContent = "您已經投過票囉！";
+
+voted=true;
+msg.textContent="您已經投過票囉！";
+
 return;
+
 }
 
 await set(voteRef,{
+
 name:name,
 address:address,
 gender:choice,
 createdAt:serverTimestamp(),
 consent:true
+
 });
 
-voted = true;
-document.getElementById("name").value = "";
-document.getElementById("address").value = "";
-document.getElementById("consent").checked = false;
+voted=true;
 
-msg.textContent = "🎉 投票成功！謝謝您的參與，祝您幸運中獎！";
+document.getElementById("name")
+.value="";
+
+document.getElementById("address")
+.value="";
+
+document.getElementById("consent")
+.checked=false;
+
+msg.textContent=
+"🎉 投票成功！謝謝您的參與，祝您幸運中獎！";
 
 }catch(error){
-msg.textContent = "投票失敗：" + (error.code || error.message || String(error));
+
+msg.textContent=
+"投票失敗："+(
+error.code||
+error.message||
+String(error)
+);
+
 }finally{
-busy = false;
-btn.disabled = voted || Date.now() >= deadline;
+
+busy=false;
+
+btn.disabled=
+voted||Date.now()>=deadline;
+
 }
+
 });
 
 checkVote();
 
+// 性別揭曉公開狀態
+
+const revealStatus=
+document.getElementById("revealStatus");
+
+const revealLink=
+document.getElementById("revealLink");
+
+onValue(ref(db,"genderReveal"),snapshot=>{
+
+const data=snapshot.val();
+
+if(data&&data.published===true&&
+(data.gender==="boy"||data.gender==="girl")){
+
+revealStatus.textContent=
+"🎉 寶寶性別已正式公布！";
+
+revealLink.hidden=false;
+
+}else{
+
+revealStatus.textContent=
+"🔒 尚未正式揭曉，敬請期待！";
+
+revealLink.hidden=true;
+
+}
+
+},()=>{
+
+revealStatus.textContent=
+"性別揭曉功能籌備中，敬請期待！";
+
+revealLink.hidden=true;
+
+});
+
 </script>
-  <div style="text-align:center;margin:25px 15px;padding:20px;background:#fff0d9;border-radius:20px;">
-  <h2>🎁 幸運中獎名單</h2>
-  <p>8 位幸運得主，敬請期待！</p>
-  <a href="winners.html" style="display:block;background:#b48c70;color:white;padding:15px;border-radius:15px;text-decoration:none;font-weight:bold;">
-    🏆 查看中獎名單
-  </a>
-</div>
 </body>
 </html>
