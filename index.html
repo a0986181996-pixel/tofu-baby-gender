@@ -70,7 +70,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebas
 
 import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-database.js";
 
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 
 const firebaseConfig = {
 
@@ -96,7 +96,7 @@ const db = getDatabase(app);
 
 const auth = getAuth(app);
 
-const provider = new GoogleAuthProvider();
+
 
 let choice = "";
 
@@ -142,11 +142,11 @@ window.notice = async function() {
 
   try {
 
-    msg.textContent = "請使用 Google 帳號登入";
+    msg.textContent = "正在匿名登入，請稍候...";
 
     const user = auth.currentUser ||
 
-      (await signInWithPopup(auth, provider)).user;
+    (await signInAnonymously(auth)).user;
 
     const result = await runTransaction(
 
